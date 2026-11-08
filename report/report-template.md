@@ -7,7 +7,7 @@
 **Repository:** [ankityadav010101/Cloud_Command_Parser](https://github.com/ankityadav010101/Cloud_Command_Parser)  
 **Course:** Cloud Computing (CS3081)
 
-> **Evidence status:** The project code and deployment configuration are prepared. Ollama teacher labelling, model training/evaluation, container execution, Kubernetes experiments, and Locust measurements have not been run in the available environment. This report deliberately marks those values as pending instead of presenting estimates as measurements. Complete the indicated runs and replace pending values before final academic submission.
+Evidence status: Source code and configuration are prepared. The Ollama labeling run, model training and scoring, container execution, Kubernetes reliability exercises, and Locust load test have not been run in the available environment. Their results are marked pending throughout this report. Replace pending items with measured outputs before final academic submission.
 
 ## 1. Task 1 - Object storage and parallel teacher labelling
 
@@ -96,6 +96,14 @@ Using the hypothetical rate card and manifest limits, one replica at 1 vCPU and 
 | Resource utilisation | Per-pod CPU/RAM pending | Metrics depend on local cluster capacity | Tune requests/limits against measured peaks |
 | Reliability and recovery | HPA/rollout/cold-start evidence pending | One physical node | Repeat on multi-node cluster for machine-failure evidence |
 | Security and cost | No cloud charge; estimate formula above | Local S3 credentials and hypothetical prices | Keep credentials in Secrets; calculate cost from measured load |
+
+## 8. Limitations
+
+The 70-million-parameter student is intentionally small and may lose accuracy compared with the fixed teacher. It learns from generated text labels, so teacher errors and ambiguous slot boundaries can propagate. CPU training and inference on a single laptop constrain throughput, and a one-node k3d cluster cannot prove multi-machine fault tolerance. SeaweedFS is a local S3-compatible store for this exercise; it does not provide the durability or availability guarantees of a production object-storage service. The API's generated output quality, startup time, image size, memory use, autoscaling, recovery, and latency remain unverified until the required runs are completed. Therefore, this report does not claim measured model or service performance.
+
+## 9. Conclusion
+
+The project provides an end-to-end implementation plan and code for teacher-based sequence-level distillation, artifact storage, schema-checked inference, Kubernetes operations, subnetting, NACL simulation, and CI quality gates. It also records the design choices and the evidence required by the assignment. Completion of the engineering implementation does not replace the outstanding experiments: run labeling and training, evaluate all three models, exercise the cluster and service, collect Locust and resource measurements, and update the pending fields before submitting the final report.
 
 ## References
 

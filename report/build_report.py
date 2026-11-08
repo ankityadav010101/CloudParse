@@ -31,9 +31,6 @@ def styles():
         fontSize=9, leading=13, textColor=colors.HexColor("#263746"), spaceAfter=6))
     s.add(ParagraphStyle(name="Smallx", parent=s["BodyText"], fontName="Helvetica",
         fontSize=7.5, leading=10, textColor=colors.HexColor("#263746"), spaceAfter=2))
-    s.add(ParagraphStyle(name="Callout", parent=s["BodyText"], fontName="Helvetica-Bold",
-        fontSize=8.5, leading=12, textColor=NAVY, backColor=PALE, borderColor=TEAL,
-        borderWidth=0.8, borderPadding=8, spaceBefore=5, spaceAfter=10))
     s.add(ParagraphStyle(name="Cell", parent=s["BodyText"], fontName="Helvetica",
         fontSize=7.4, leading=9.2, textColor=colors.HexColor("#263746")))
     s.add(ParagraphStyle(name="CellHead", parent=s["Cell"], fontName="Helvetica-Bold",
@@ -105,7 +102,7 @@ def build():
         Spacer(1, 3 * mm), para('Repository: <link href="https://github.com/ankityadav010101/Cloud_Command_Parser" color="#187C80">github.com/ankityadav010101/Cloud_Command_Parser</link>', st["Bodyx"]), Spacer(1, 5 * mm),
         para("Project summary", st["Heading1x"]),
         para("This project builds a constrained natural-language command parser that maps one short English command to a four-key JSON object. The implementation combines local teacher labeling, sequence-level student fine-tuning, an S3-compatible model store, a containerized API, and a local Kubernetes deployment. It uses only the supplied command pool for training; the supplied validation set is reserved for evaluation.", st["Bodyx"]),
-        para("Evidence status: source code and configuration are prepared, but the Ollama labeling run, model training and scoring, container execution, Kubernetes reliability exercises, and Locust load test have not been run in the available environment. Pending results are identified as such throughout. Replace them with measured outputs before final academic submission.", st["Callout"]),
+        para("Evidence status: Source code and configuration are prepared. The Ollama labeling run, model training and scoring, container execution, Kubernetes reliability exercises, and Locust load test have not been run in the available environment. Their results are marked pending throughout this report. Replace pending items with measured outputs before final academic submission.", st["Bodyx"]),
         para("Architecture", st["Heading2x"]),
         para("3,000 command pool -> parallel Ollama Phi-3.5 workers -> validated and checksummed teacher dataset -> CPU fine-tuned Pythia-70M -> model artifact in SeaweedFS -> FastAPI container -> k3d Ingress and Kubernetes Deployment. Validation rows are used only by the teacher/base/student evaluators.", st["Bodyx"]),
         para("1. Task 1 - Object storage and parallel teacher labeling", st["Heading1x"]),
@@ -164,6 +161,10 @@ def build():
                ["Reliability", "HPA/recovery evidence pending", "One physical node", "Repeat on multi-node cluster"],
                ["Security / cost", "No cloud charge; estimate above", "Hypothetical prices", "Use Secrets; cost from measured load"]],
               [30 * mm, 48 * mm, 46 * mm, 42 * mm], st),
+        para("8. Limitations", st["Heading1x"]),
+        para("The 70-million-parameter student is intentionally small and may lose accuracy compared with the fixed teacher. It learns from generated text labels, so teacher errors and ambiguous slot boundaries can propagate. CPU training and inference on a single laptop constrain throughput, and a one-node k3d cluster cannot prove multi-machine fault tolerance. SeaweedFS is a local S3-compatible store for this exercise; it does not provide the durability or availability guarantees of a production object-storage service. The API's generated output quality, startup time, image size, memory use, autoscaling, recovery, and latency remain unverified until the required runs are completed. Therefore, this report does not claim measured model or service performance.", st["Bodyx"]),
+        para("9. Conclusion", st["Heading1x"]),
+        para("The project provides an end-to-end implementation plan and code for teacher-based sequence-level distillation, artifact storage, schema-checked inference, Kubernetes operations, subnetting, NACL simulation, and CI quality gates. It also records the design choices and the evidence required by the assignment. Completion of the engineering implementation does not replace the outstanding experiments: run labeling and training, evaluate all three models, exercise the cluster and service, collect Locust and resource measurements, and update the pending fields before submitting the final report.", st["Bodyx"]),
         para("References", st["Heading2x"]),
         para("Bastianelli et al., SLURP, EMNLP 2020: https://aclanthology.org/2020.emnlp-main.588/. Kim and Rush, Sequence-Level Knowledge Distillation, EMNLP 2016: https://aclanthology.org/D16-1139/. EleutherAI Pythia-70M model card: https://huggingface.co/EleutherAI/pythia-70m. k3d: https://k3d.io/; Kubernetes: https://kubernetes.io/docs/.", st["Smallx"]),
     ]

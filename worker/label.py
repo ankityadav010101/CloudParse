@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def teacher_reply(command: str) -> str:
     prompt = (ROOT / "prompts/teacher_prompt.txt").read_text(encoding="utf-8").replace("{command}", command)
     body = json.dumps({"model": "phi3.5", "prompt": prompt, "stream": False,
-                       "options": {"temperature": 0, "seed": 42}}).encode()
+                       "options": {"temperature": 0, "seed": 42, "num_predict": 128}}).encode()
     req = urllib.request.Request(os.getenv("OLLAMA_URL", "http://localhost:11434/api/generate"),
                                  data=body, headers={"Content-Type": "application/json"})
     for attempt in range(5):
@@ -34,13 +34,25 @@ def main():
     out = ROOT / f"datasets/teacher/shard-{shard_index}.jsonl"
     out.parent.mkdir(parents=True, exist_ok=True)
     count = 0
-    with source.open(encoding="utf-8") as inp, out.open("w", encoding="utf-8") as dst:
+    completed = set()
+    if out.exists():
+        with out.open(encoding="utf-8") as prior:
+            for line in prior:
+                try:
+                    completed.add(json.loads(line)["id"])
+                except (json.JSONDecodeError, KeyError):
+                    continue
+    with source.open(encoding="utf-8") as inp, out.open("a", encoding="utf-8") as dst:
         for line_no, line in enumerate(inp):
             if line_no % shard_count != shard_index:
                 continue
             row = json.loads(line)
+            if row["id"] in completed:
+                continue
             raw = teacher_reply(row["text"])
             dst.write(json.dumps({"id": row["id"], "text": row["text"], "teacher_raw": raw}, ensure_ascii=False) + "\n")
+            dst.flush()
+            completed.add(row["id"])
             count += 1
     print(f"shard={shard_index}/{shard_count} records={count} path={out}")
 

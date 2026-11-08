@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: pipeline
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: teacher-shards
+  namespace: pipeline
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests: {storage: 2Gi}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: labeler
+  namespace: pipeline
+spec:
+  serviceName: labeler
+  replicas: 2
+  selector:
+    matchLabels: {app: labeler}
+  template:
+    metadata:
+      labels: {app: labeler}
+    spec:
+      containers:
+        - name: labeler
+          image: cloud-command-parser-worker:local
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args: ["export SHARD_INDEX=${HOSTNAME##*-}; export SHARD_COUNT=2; python worker/label.py"]
+          env:
+            - {name: OLLAMA_URL, value: "http://host.k3d.internal:11434/api/generate"}
+          volumeMounts:
+            - {name: shards, mountPath: /work/datasets/teacher}
+      volumes:
+        - name: shards
+          persistentVolumeClaim: {claimName: teacher-shards}

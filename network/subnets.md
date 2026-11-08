@@ -1,0 +1,10 @@
+# VLSM allocation for 10.20.0.0/16
+
+Allocate from largest to smallest, on the next available network boundary. Usable hosts exclude network and broadcast addresses.
+
+| Subnet | Hosts required | Network/prefix | Usable range | Broadcast | Usable hosts |
+|---|---:|---|---|---|---:|
+| app | 1,000 | 10.20.0.0/22 | 10.20.0.1 - 10.20.3.254 | 10.20.3.255 | 1,022 |
+| public | 250 | 10.20.4.0/24 | 10.20.4.1 - 10.20.4.254 | 10.20.4.255 | 254 |
+| data | 100 | 10.20.5.0/25 | 10.20.5.1 - 10.20.5.126 | 10.20.5.127 | 126 |
+| management | 20 | 10.20.5.128/27 | 10.20.5.129 - 10.20.5.158 | 10.20.5.159 | 30 |

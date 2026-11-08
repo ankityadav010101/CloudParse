@@ -1,0 +1,19 @@
+seed: 42
+model_name: EleutherAI/pythia-70m
+max_examples: 1500
+max_length: 192
+learning_rate: 0.00005
+batch_size: 2
+epochs: 1
+weight_decay: 0.01
+logging_steps: 25
+save_steps: 500
+versions: [v1, v2]
+python: "3.11"
+torch: "2.3.1"
+transformers: "4.44.2"
+datasets: "2.21.0"
+peft: "0.12.0"
+numpy: "1.26.4"
+fastapi: "0.115.0"
+boto3: "1.35.24"

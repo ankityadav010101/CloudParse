@@ -1,0 +1,12 @@
+__pycache__/
+.venv/
+tmp/
+*.py[cod]
+models/**
+datasets/teacher/
+datasets/v1/
+results/*.jsonl
+results/*.csv
+results/loadtest*
+!results/.gitkeep
+.env

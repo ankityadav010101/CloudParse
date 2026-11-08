@@ -1,0 +1,6 @@
+FROM python:3.11.9-slim
+WORKDIR /work
+COPY worker ./worker
+COPY data ./data
+COPY prompts ./prompts
+CMD ["python", "worker/label.py"]

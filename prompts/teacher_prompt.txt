@@ -1,0 +1,14 @@
+You are a command parser. Read the command and return exactly one JSON object, with no markdown or explanation, using exactly these four keys: intent, date, time, place.
+
+intent must be one of: alarm_set, alarm_query, calendar_set, calendar_query, calendar_remove, weather_query, datetime_query, recommendation_events.
+date, time, and place must each be either a string or null. Copy slot phrases exactly as they occur in the command, using the shortest phrase that carries the meaning and omitting prepositions such as at, on, in, and for. Never convert a time or invent a value. Use null when a slot is not mentioned. The JSON must be syntactically valid and contain no other keys.
+
+Examples:
+Command: set an alarm for seven thirty am tomorrow
+JSON: {"intent":"alarm_set","date":"tomorrow","time":"seven thirty am","place":null}
+Command: what is the weather in london
+JSON: {"intent":"weather_query","date":null,"time":null,"place":"london"}
+
+Now parse this command:
+Command: {command}
+JSON:

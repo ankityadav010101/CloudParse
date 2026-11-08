@@ -1,0 +1,100 @@
+{"id": "V001", "prediction": "{\"intent\":\"calendar_remove\",\"date\":\"upcoming\",\"time\":null,\"place\":null}\n"}
+{"id": "V002", "prediction": "{\"intent\":\"alarm_set\",\"date\":\"sunday\",\"time\":\"five in the morning\",\"place\":null}\n"}
+{"id": "V003", "prediction": "{\"intent\":\"datetime_query\",\"date\":null,\"time\":\"right now\",\"place\":\"washington\"}\n"}
+{"id": "V004", "prediction": "{\"intent\":\"datetime_query\",\"date\":\"monday\",\"time\":null,\"place\":null}"}
+{"id": "V005", "prediction": "{\"intent\":\"alarm_set\",\"date\":\"tuesday\",\"time\":\"six pm\",\"place\":null}\n"}
+{"id": "V006", "prediction": "{\"intent\":\"recommendation_events\",\"date\":\"this afternoon\",\"time\":null,\"place\":null}"}
+{"id": "V007", "prediction": "{\"intent\":\"datetime_query\",\"date\":\"november fourteenth\",\"time\":null,\"place\":null}\n"}
+{"id": "V008", "prediction": "{\"intent\":\"calendar_query\",\"date\":\"this weekend\",\"time\":null,\"place\":null}\n"}
+{"id": "V009", "prediction": "{\"intent\":\"datetime_query\",\"date\":null,\"time\":\"central time zone\",\"place\":null}"}
+{"id": "V010", "prediction": "{\"intent\":\"datetime_query\",\"date\":null,\"time\":null,\"place\":\"dale\"}\n"}
+{"id": "V011", "prediction": "{\"intent\":\"weather_query\",\"date\":\"this week\",\"time\":null,\"place\":null}\n"}
+{"id": "V012", "prediction": "{\"intent\":\"datetime_query\",\"date\":null,\"time\":\"pst\",\"place\":null}"}
+{"id": "V013", "prediction": "{\"intent\":\"recommendation_events\",\"date\":null,\"time\":null,\"place\":\"area\"}\n"}
+{"id": "V014", "prediction": "{\"intent\":\"calendar_query\",\"date\":\"this afternoon\",\"time\":null,\"place\":null}\n"}
+{"id": "V015", "prediction": "{\"intent\":\"calendar_remove\",\"date\":\"today\",\"time\":null,\"place\":null}\n"}
+{"id": "V016", "prediction": "{\"intent\":\"calendar_query\",\"date\":null,\"time\":null,\"place\":null}\n"}
+{"id": "V017", "prediction": "{\"intent\":\"alarm_set\",\"date\":null,\"time\":\"this time\",\"place\":null}\n"}
+{"id": "V018", "prediction": "{\"intent\":\"recommendation_events\",\"date\":\"tomorrow\",\"time\":\"an hour before\",\"place\":null}"}
+{"id": "V019", "prediction": "{\"intent\":\"recommendation_events\",\"date\":null,\"time\":null,\"place\":null}"}
+{"id": "V020", "prediction": "{\"intent\":\"weather_query\",\"date\":null,\"time\":null,\"place\":\"our city\"}\n"}
+{"id": "V021", "prediction": "{\"intent\":\"recommendation_events\",\"date\":null,\"time\":null,\"place\":\"around me\"}\n"}
+{"id": "V022", "prediction": "{\"intent\":\"recommendation_events\",\"date\":null,\"time\":\"for making call\",\"place\":\"all participants\"}\n"}
+{"id": "V023", "prediction": "{\"intent\":\"calendar_set\",\"date\":\"June 3rd\",\"time\":null,\"place\":\"bob'severy\"}\n\n(Note: The place key is not standard and seems to be a direct copy of the slot phrase. In a real-world scenario, this would likely be clarified or corrected to a standard format such as \"Bob's birthday\" if the intent is to set a reminder for Bob's birthday on June 3rd.)"}
+{"id": "V024", "prediction": "{\"intent\":\"recommendation_events\",\"date\":null,\"time\":null,\"place\":\"justin'thy school\"}\n"}
+{"id": "V025", "prediction": "{\"intent\":\"datetime_query\",\"date\":null,\"time\":\"now\",\"place\":\"new york\"}\n"}
+{"id": "V026", "prediction": "{\"intent\":\"weather_query\",\"date\":\"five days\",\"time\":null,\"place\":\"new york city\"}\n"}
+{"id": "V027", "prediction": "{\"intent\":\"calendar_query\",\"date\":\"today\",\"time\":null,\"place\":null}\n"}
+{"id": "V028", "prediction": "{\"intent\":\"weather_query\",\"date\":null,\"time\":null,\"place\":\"home\"}\n"}
+{"id": "V029", "prediction": "{\"intent\":\"alarm_query\",\"date\":null,\"time\":null,\"place\":null}"}
+{"id": "V030", "prediction": "{\"intent\":\"alarm_set\",\"date\":null,\"time\":\"ten am\",\"place\":null}\n"}
+{"id": "V031", "prediction": "{\"intent\":\"recommendation_events\",\"date\":\"today\",\"time\":null,\"place\":null}\n"}
+{"id": "V032", "prediction": "{\"intent\":\"datetime_query\",\"date\":\"this year\",\"time\":null,\"place\":null}"}
+{"id": "V033", "prediction": "{\"intent\":\"alarm_set\",\"date\":\"next tuesday\",\"time\":\"eight hundred am\",\"place\":null}"}
+{"id": "V034", "prediction": "{\"intent\":\"recommendation_events\",\"date\":null,\"time\":null,\"place\":null}"}
+{"id": "V035", "prediction": "{\"intent\":\"alarm_query\",\"date\":\"today\",\"time\":null,\"place\":null}\n"}
+{"id": "V036", "prediction": "{\"intent\":\"alarm_query\",\"date\":null,\"time\":\"seven am\",\"place\":null}\n"}
+{"id": "V037", "prediction": "{\"intent\":\"calendar_set\",\"date\":\"tomorrow\",\"time\":\"seven\",\"place\":\"office\"}\n"}
+{"id": "V038", "prediction": "{\"intent\":\"calendar_set\",\"date\":\"monday\",\"time\":\"six\",\"place\":\"mcdonalds\"}\n"}
+{"id": "V039", "prediction": "{\"intent\":\"recommendation_events\",\"date\":null,\"time\":null,\"place\":\"wyatts birthday party\"}\n"}
+{"id": "V040", "prediction": "{\"intent\":\"alarm_set\",\"date\":null,\"time\":\"an hour's time\",\"place\":null}\n"}
+{"id": "V041", "prediction": "{\"intent\":\"datetime_query\",\"date\":null,\"time\":\"california\",\"place\":null}"}
+{"id": "V042", "prediction": "{\"intent\":\"datetime_query\",\"date\":null,\"time\":\"beijing\",\"place\":null}"}
+{"id": "V043", "prediction": "{\"intent\":\"alarm_query\",\"date\":null,\"time\":null,\"place\":null}"}
+{"id": "V044", "prediction": "{\"intent\":\"datetime_query\",\"date\":\"fifteenth\",\"time\":null,\"place\":null}\n"}
+{"id": "V045", "prediction": "{\"intent\":\"alarm_set\",\"date\":\"next tuesday\",\"time\":null,\"place\":null}\n"}
+{"id": "V046", "prediction": "{\"intent\":\"recommendation_events\",\"date\":\"this friday\",\"time\":null,\"place\":null}"}
+{"id": "V047", "prediction": "{\"intent\":\"recommendation_events\",\"date\":null,\"time\":null,\"place\":null}"}
+{"id": "V048", "prediction": "{\"intent\":\"calendar_remove\",\"date\":null,\"time\":\"one pm\",\"place\":\"my calendar\"}\n"}
+{"id": "V049", "prediction": "{\"intent\":\"recommendation_events\",\"date\":\"the first of january\",\"time\":null,\"place\":\"alexa\"}\n"}
+{"id": "V050", "prediction": "{\"intent\":\"calendar_set\",\"date\":\"today\",\"time\":\"one pm\",\"place\":\"joe smith\"}\n"}
+{"id": "V051", "prediction": "{\"intent\":\"alarm_query\",\"date\":null,\"time\":null,\"place\":\"bed\"}\n"}
+{"id": "V052", "prediction": "{\"intent\":\"recommendation_events\",\"date\":\"this week\",\"time\":null,\"place\":\"here\"}\n"}
+{"id": "V053", "prediction": "{\"intent\":\"recommendation_events\",\"date\":null,\"time\":null,\"place\":\"london\"}\n"}
+{"id": "V054", "prediction": "{\"intent\":\"alarm_set\",\"date\":\"tuesday\",\"time\":\"four pm\",\"place\":null}\n"}
+{"id": "V055", "prediction": "{\"intent\":\"weather_query\",\"date\":\"tomorrow\",\"time\":null,\"place\":\"mumbai\"}\n"}
+{"id": "V056", "prediction": "{\"intent\":\"recommendation_events\",\"date\":null,\"time\":null,\"place\":\"here\"}\n"}
+{"id": "V057", "prediction": "{\"intent\":\"calendar_remove\",\"date\":\"april second\",\"time\":null,\"place\":null}\n"}
+{"id": "V058", "prediction": "{\"intent\":null,\"date\":null,\"time\":null,\"place\":null}\n\nExplangy provided JSON does not contain the specific intent requested in the command. The command \"tap start and then select settings\" seems to be an action rather than a request for information or a scheduling task. Since there is no clear intent to set an alarm, query a calendar, or ask for information, and no date, time, or place is mentioned, the JSON reflects the absence of these details. If the intent was to set an alarm or calendar event, the date and time would be necessary. However, as the"}
+{"id": "V059", "prediction": "{\"intent\":\"datetime_query\",\"date\":\"the twenty second march\",\"time\":null,\"place\":null}"}
+{"id": "V060", "prediction": "{\"intent\":\"recommendation_events\",\"date\":null,\"time\":null,\"place\":\"near me\"}\n"}
+{"id": "V061", "prediction": "{\"intent\":\"recommendation_events\",\"date\":null,\"time\":null,\"place\":null}\n"}
+{"id": "V062", "prediction": "{\"intent\":\"calendar_remove\",\"date\":\"today\",\"time\":null,\"place\":null}\n"}
+{"id": "V063", "prediction": "{\"intent\":\"recommendation_events\",\"date\":null,\"time\":null,\"place\":\"near me\"}\n"}
+{"id": "V064", "prediction": "{\"intent\":\"recommendation_events\",\"date\":\"this weekend\",\"time\":null,\"place\":\"iowa\"}\n"}
+{"id": "V065", "prediction": "{\"intent\":\"recommendation_events\",\"date\":null,\"time\":null,\"place\":\"quad cities\"}\n"}
+{"id": "V066", "prediction": "{\"intent\":\"datetime_query\",\"date\":null,\"time\":\"this time\",\"place\":null}"}
+{"id": "V067", "prediction": "{\"intent\":\"weather_query\",\"date\":\"today\",\"time\":null,\"place\":null}\n"}
+{"id": "V068", "prediction": "{\"intent\":\"alarm_query\",\"date\":\"this week\",\"time\":null,\"place\":null}\n"}
+{"id": "V069", "prediction": "{\"intent\":\"recommendation_events\",\"date\":null,\"time\":null,\"place\":\"my area\"}\n"}
+{"id": "V070", "prediction": "{\"intent\":\"weather_query\",\"date\":\"friday\",\"time\":null,\"place\":null}\n"}
+{"id": "V071", "prediction": "{\"intent\":\"calendar_set\",\"date\":null,\"time\":null,\"place\":\"dinner reservations\"}\n"}
+{"id": "V072", "prediction": "{\"intent\":\"recommendation_events\",\"date\":\"monday\",\"time\":null,\"place\":null}"}
+{"id": "V073", "prediction": "{\"intent\":\"calendar_remove\",\"date\":null,\"time\":null,\"place\":null}\n"}
+{"id": "V074", "prediction": "{\"intent\":\"datetime_query\",\"date\":\"next saturday\",\"time\":null,\"place\":null}\n"}
+{"id": "V075", "prediction": "{\"intent\":\"calendar_remove\",\"date\":\"weekend\",\"time\":null,\"place\":\"evan parker\"}\n\n\nNote: The \"date\" key is set to \"weekend\" because the command refers to a specific time frame (the weekend), and the \"place\" key is set to the name of the person involved (Evan Parker), which in this context is assumed to be the reason for the events. The \"time\" is not specified, so it is set to null."}
+{"id": "V076", "prediction": "{\"intent\":\"alarm_set\",\"date\":null,\"time\":\"ten am\",\"place\":null}\n"}
+{"id": "V077", "prediction": "{\"intent\":\"recommendation_events\",\"date\":\"june third\",\"time\":null,\"place\":\"zach brown concert\"}\n"}
+{"id": "V078", "prediction": "{\"intent\":\"calendar_set\",\"date\":\"wednesday\",\"time\":\"nine am\",\"place\":\"john\"}\n\n(Note: The \"place\" key in the JSON object is used here to represent the person involved in the meeting, as per the command'dictation. In a more detailed system, additional keys might be used to differentiate between the reminder and the person, but following the instructions strictly, we use \"place\" as a proxy for the person involved.)"}
+{"id": "V079", "prediction": "{\"intent\":\"recommendation_events\",\"date\":null,\"time\":null,\"place\":\"new york city\"}\n"}
+{"id": "V080", "prediction": "{\"intent\":\"alarm_query\",\"date\":null,\"time\":null,\"place\":null}\n"}
+{"id": "V081", "prediction": "{\"intent\":\"recommendation_events\",\"date\":null,\"time\":null,\"place\":null}"}
+{"id": "V082", "prediction": "{\"intent\":\"alarm_query\",\"date\":null,\"time\":null,\"place\":null}"}
+{"id": "V083", "prediction": "{\"intent\":\"recommendation_events\",\"date\":\"today\",\"time\":null,\"place\":null}"}
+{"id": "V084", "prediction": "{\"intent\":\"alarm_query\",\"date\":null,\"time\":null,\"place\":null}\n"}
+{"id": "V085", "prediction": "{\"intent\":null,\"date\":null,\"time\":null,\"place\":null}\n"}
+{"id": "V086", "prediction": "{\"intent\":\"recommendation_events\",\"date\":null,\"time\":\"a few hours ahead\",\"place\":null}"}
+{"id": "V087", "prediction": "{\"intent\":\"calendar_remove\",\"date\":\"february twelfth\",\"time\":\"nine am\",\"place\":null}\n"}
+{"id": "V088", "prediction": "{\"intent\":\"alarm_query\",\"date\":null,\"time\":null,\"place\":null}\n"}
+{"id": "V089", "prediction": "{\"intent\":\"alarm_set\",\"date\":null,\"time\":\"six thirty pm\",\"place\":null}\n"}
+{"id": "V090", "prediction": "{\"intent\":\"alarm_set\",\"date\":\"next friday\",\"time\":\"noon\",\"place\":null}\n"}
+{"id": "V091", "prediction": "{\"intent\":\"datetime_query\",\"date\":null,\"time\":null,\"place\":\"paris\"}"}
+{"id": "V092", "prediction": "{\"intent\":\"calendar_set\",\"date\":\"tomorrow\",\"time\":\"two pm\",\"place\":\"francine\"}\n"}
+{"id": "V093", "prediction": "{\"intent\":\"alarm_query\",\"date\":null,\"time\":\"morning\",\"place\":null}\n"}
+{"id": "V094", "prediction": "{\"intent\":\"recommendation_events\",\"date\":\"this week\",\"time\":null,\"place\":null}"}
+{"id": "V095", "prediction": "{\"intent\":\"alarm_set\",\"date\":null,\"time\":\"seven thirty am\",\"place\":null}\n"}
+{"id": "V096", "prediction": "{\"intent\":\"weather_query\",\"date\":\"this week\",\"time\":null,\"place\":null}\n"}
+{"id": "V097", "prediction": "{\"intent\":\"alarm_query\",\"date\":null,\"time\":null,\"place\":null}\n"}
+{"id": "V098", "prediction": "{\"intent\":\"calendar_remove\",\"date\":null,\"time\":null,\"place\":null}\n"}
+{"id": "V099", "prediction": "{\"intent\":\"alarm_set\",\"date\":null,\"time\":\"eight hundred am\",\"place\":null}\n\nNote: The provided JSON object follows the instructions, with \"eight hundred am\" indicating the time the alarm is set for, and \"date\" is set to null as the specific date was not mentioned in the command. The place is also null as it was not specified."}
+{"id": "V100", "prediction": "{\"intent\":\"calendar_remove\",\"date\":null,\"time\":null,\"place\":null}\n"}

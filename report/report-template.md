@@ -6,7 +6,7 @@
 | Student | Ankit Yadav |
 | Roll number | 230101069 |
 | Project name | CloudParse |
-| Repository | [CloudParse](https://github.com/ankityadav010101/CloudParse) |
+| Repository | https://github.com/ankityadav010101/CloudParse |
 
 ## Abstract
 
@@ -239,7 +239,7 @@ The application subnet needs at least 1,000 usable addresses. Ten host bits prov
 
 ---
 
-# 7. Reproducibility, service objectives, and conclusion
+# 7. Review, Limitations and Conclusion
 
 ## Reproducibility and measurement design
 

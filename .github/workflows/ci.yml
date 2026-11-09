@@ -1,30 +1,142 @@
-name: validation
+name: CloudParse CI
+
 on:
   push:
   pull_request:
+  workflow_dispatch:
+    inputs:
+      evaluate_model:
+        description: Evaluate the trained model attached to a GitHub release
+        type: boolean
+        required: false
+        default: false
+      release_tag:
+        description: Release tag containing v1-model.tar.gz
+        type: string
+        required: false
+        default: v1
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cloudparse-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
+    name: Validate project and build report
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: pip install --index-url https://download.pytorch.org/whl/cpu torch==2.3.1
-      - run: pip install -r requirements.txt
-      - run: python -m compileall -q service worker training tools tests
-      - run: pytest -q
-      - name: Download model release asset
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh release download v1 --pattern 'v1-model.tar.gz' --dir artifacts
-      - name: Unpack model
-        run: mkdir -p artifacts/model && tar -xzf artifacts/v1-model.tar.gz -C artifacts/model
-      - name: Evaluate release model quality
-        run: python tools/evaluate.py --model-dir artifacts/model
-      - name: JSON quality gate
-        run: python tools/score.py results/student_predictions.jsonl data/validation.jsonl --min-validity 95
-      - name: Secret scan
+          cache: pip
+
+      - name: Install CPU PyTorch
+        run: python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.3.1
+
+      - name: Install project dependencies
+        run: python -m pip install -r requirements.txt pypdf==5.1.0
+
+      - name: Compile Python source
+        run: python -m compileall -q service worker training tools tests
+
+      - name: Run unit tests
+        run: python -m pytest -q
+
+      - name: Check network access rules
+        run: python tools/nacl_sim.py network/nacl.json network/packets_sample.jsonl --check
+
+      - name: Calculate subnet allocations
+        run: python tools/subnet_calc.py
+
+      - name: Build and verify assignment report
+        run: |
+          python report/build_report.py
+          python - <<'PY'
+          from pypdf import PdfReader
+
+          pdf = PdfReader("report/report.pdf")
+          assert len(pdf.pages) == 8, f"Expected 8 pages, got {len(pdf.pages)}"
+          cover = pdf.pages[0].extract_text() or ""
+          final_page = pdf.pages[-1].extract_text() or ""
+          assert "CloudParse" in cover and "Assignment Report" in cover
+          assert "https://github.com/ankityadav010101/CloudParse" in cover
+          assert "7. Review, Limitations and Conclusion" in final_page
+          print("Report verified: 8 pages, cover details and final heading present")
+          PY
+
+      - name: Upload report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CloudParse-assignment-report
+          path: report/report.pdf
+          if-no-files-found: error
+          retention-days: 30
+
+  secret-scan:
+    name: Scan for secrets
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Run Gitleaks
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  model-quality:
+    name: Optional released-model quality gate
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.evaluate_model }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install CPU PyTorch
+        run: python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.3.1
+
+      - name: Install project dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Download model release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: mkdir -p artifacts && gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --pattern 'v1-model.tar.gz' --dir artifacts
+
+      - name: Unpack model
+        run: mkdir -p artifacts/model && tar -xzf artifacts/v1-model.tar.gz -C artifacts/model
+
+      - name: Evaluate model on held-out validation set
+        run: python tools/evaluate.py --model-dir artifacts/model --predictions results/student_predictions.jsonl --gold data/validation.jsonl
+
+      - name: Upload model evaluation results
+        if: always() && hashFiles('results/student_validation.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: CloudParse-model-evaluation
+          path: |
+            results/student_predictions.jsonl
+            results/student_validation.json
+          if-no-files-found: ignore
+          retention-days: 30

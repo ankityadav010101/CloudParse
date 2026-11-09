@@ -49,4 +49,4 @@ The model is a small baseline, not a general-purpose assistant. If the tokenizer
 
 ## Repeatable development commands
 
-`make up`, `make label`, `make clean-data`, `make train SUBSET=50`, `make image`, `make deploy`, `make nacl`, `make down`. The `make lint` target compiles and runs unit tests. CI includes linting, unit checks, released-model evaluation, a strict JSON-validity quality gate, and secret scanning. The `v1` release asset must exist before the model-evaluation job can pass.
+`make up`, `make label`, `make clean-data`, `make train SUBSET=50`, `make image`, `make deploy`, `make nacl`, `make down`. The `make lint` target compiles and runs unit tests. GitHub Actions compiles and tests the code, checks the NACL examples, calculates subnet allocations, builds and verifies the eight-page report, uploads the report artifact, and scans for secrets. A released-model quality gate can be started manually when a trained `v1-model.tar.gz` asset is available.

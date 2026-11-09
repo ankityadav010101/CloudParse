@@ -24,6 +24,16 @@ Command text -> deterministic label shards -> validated and checksummed dataset 
 
 CloudParse is implemented in the `Cloud_Command_Parser` repository. The name used in this report is CloudParse; the repository URL remains the supplied project repository.
 
+## Scope and example use
+
+The parser is intended for short, single-step requests whose meaning can be expressed by the supported intent set. A request such as “check the weather in Delhi tomorrow” should become a weather intent with a place and date, while leaving unrelated slots null. Keeping the output narrow makes it easier for an application to validate the request, request clarification when information is missing, and route a well-formed command to the correct service. The system does not execute cloud operations itself; it produces a structured interpretation that a separate, permission-aware application can review and use.
+
+## Design principles and expected behavior
+
+Three principles guide the implementation. First, the output should be constrained enough for deterministic validation. Second, every training label should remain traceable to the original command and teacher response. Third, model behavior and service behavior should be measured separately. These choices make it easier to identify whether a failure comes from ambiguous language, an incorrect label, a malformed generation, or an unavailable deployment component.
+
+The intended result is an intermediate command frame, not an unrestricted action executor. A downstream application can check permissions, confirm high-impact operations, and ask the user to clarify missing details before performing an action. For example, a calendar-removal intent may identify the request type but still need a date or event identifier from another system. This separation keeps language interpretation useful without treating a model prediction as authorization.
+
 ---
 
 # 1. Theoretical foundation
@@ -49,6 +59,10 @@ Logit-level distillation instead compares the teacher's and student's probabilit
 ## Parameter-efficient adaptation
 
 Fine-tuning a pretrained language model updates its behavior for the command format. Low-Rank Adaptation (LoRA) freezes the base model weights and learns small low-rank update matrices. This reduces the number of trainable parameters and the storage needed for an adaptation, making it useful when compute and memory are limited. The project configuration includes LoRA-based student training, although a trained artifact was not produced in the local run.
+
+## Decoding and output control
+
+Generation settings influence the balance between variety and repeatability. A fixed seed and low temperature make teacher labeling more consistent across repeated runs, but they do not guarantee identical output if the model implementation or prompt changes. The prompt therefore specifies the exact fields and asks for a compact object. The cleaner remains the final authority: prompt wording encourages compliance, while validation enforces it. This layered design avoids relying on generation instructions alone for a machine-facing contract.
 
 ---
 
@@ -79,6 +93,10 @@ Parallel workers improve throughput, but they introduce coverage and duplicate r
 | Retained training examples | 2,728 |
 
 The rejection counts are emitted by the cleaner's ordered validation checks. The output dataset contains 2,728 examples. Its recorded SHA-256 digest is `5ded5944f8e1d9f3ef3bd5d39e302a5f397465895f80f9d248b39a4d33f029fd`.
+
+## Data quality implications
+
+The rejected rows show why automated annotation needs a quality gate before training. Invalid JSON cannot be scored as a structured label; an unknown intent cannot be mapped safely to the application contract; and a slot that does not occur in the command may reflect hallucination or a labeling mismatch. Duplicates can over-weight repeated wording during fine-tuning, so they are removed before training. The current checks target format, vocabulary, and source-text grounding. A future audit should also inspect intent balance, null-slot frequency, and a human-reviewed sample of accepted labels to estimate semantic label quality.
 
 ---
 
@@ -120,6 +138,10 @@ JSON validity measures contract compliance, not correctness of the extracted com
 
 These figures establish a measured baseline for the teacher on the supplied held-out set. They are not student scores. A student evaluation should use the same validation file, scorer, normalization rules, and sample count so results can be interpreted consistently. Raw predictions are stored in `results/teacher_predictions.jsonl`; aggregate readings are in `results/teacher_validation.json`.
 
+## Evaluation procedure
+
+Each of the 100 predictions is matched to its validation ID. The scorer first checks whether the output is a JSON object with exactly the four required keys. It then compares the intent and each slot with the reference, normalizing whitespace and letter case for text slots. A missing prediction counts as incorrect rather than silently shrinking the denominator. Reporting the sample count alongside percentages makes the result auditable and prevents a high score on a small subset from being mistaken for complete coverage.
+
 ---
 
 # 4. Inference interface and application security
@@ -141,6 +163,16 @@ A container packages the API runtime and its dependencies in a repeatable enviro
 ## Failure handling
 
 Model-generated output is untrusted input, even when produced by a local model. The API should parse it, enforce the schema, and return an explicit failure when validation fails. Timeouts and object-store errors should also fail visibly, with useful logs that avoid leaking credentials or user commands. These safeguards separate model quality from service correctness: a service can reject a bad prediction reliably even when the underlying model is imperfect.
+
+## Request lifecycle and trust boundaries
+
+A typical request begins when a client submits command text to `/parse`. The service checks the request shape, invokes the selected model, extracts the generated object, validates its keys and value types, and returns either a structured response or a controlled error. Version and serving-instance headers help operators connect a response to the running artifact and replica. Health checks should not reveal credentials, internal prompts, or raw user data.
+
+The main trust boundaries are the client-to-API request, the API-to-model output, and the service-to-object-store connection. Input length limits and timeouts can prevent unexpectedly large requests from consuming excessive resources. Output validation prevents generated text from becoming an unchecked instruction. Object-store access should use least-privilege credentials, and logs should record operational context without storing secrets. These controls complement model evaluation; they do not replace it.
+
+## Consistent responses and error handling
+
+A stable API should distinguish an invalid request from an invalid model response and from a temporary dependency failure. These cases can use different status codes and safe error bodies, allowing clients to decide whether to correct input, retry, or stop. The project includes health and readiness routes as well as a fault-injection option for invalid output. Version headers support debugging after an update. In a production service, retries should be bounded and idempotent, and logs should record an error category without exposing secrets or unnecessarily retaining user text.
 
 ---
 
@@ -167,6 +199,10 @@ A rolling update gradually replaces old Pods with a new version. A safe release 
 ## Local deployment evidence
 
 `k8s/app.yaml` contains the application Deployment, Service, Ingress, probes, resource settings, and autoscaler configuration. The local environment did not have `kubectl` or `k3d`, so rollout, recovery, and autoscaling behavior were not executed or measured. The manifest describes the intended operations; it is not presented as runtime evidence.
+
+## Operational observability
+
+A useful deployment dashboard should connect replica count, ready replicas, request rate, error rate, and latency percentiles. Resource graphs for CPU and memory help explain whether a slow response comes from saturation, model startup, or dependency delays. Logs should include a request identifier, model version, and error category while avoiding command text unless a retention policy permits it. During a rollout, comparing old and new versions on the same signals helps identify regressions early. Because model loading can dominate cold-start time, readiness duration should be tracked separately from steady-state response time.
 
 ---
 
@@ -195,6 +231,14 @@ A NACL is stateless: it does not remember an allowed outbound connection and aut
 
 The supplied packet simulator was run with its checking option. All six sample cases matched their expected decisions: 6/6, or 100%. The sample covered allowed HTTPS, denied SSH, application egress, an explicitly denied source range, ephemeral outbound traffic, and a denied database port. The subnet calculator also completed and produced the allocations in the table. Result logs are stored in `results/nacl_sample_check.txt` and `results/subnet_check.txt`.
 
+## Reading the network test cases
+
+The packet simulator exercises both positive and negative policy decisions. HTTPS from an allowed source reaches the web rule, while the blocked source range is denied before that allow can match. SSH from a non-management address is denied, and the database port remains closed to the sample inbound request. The outbound application packet and ephemeral-port case demonstrate that permitted service traffic and return-path ports can be expressed explicitly. Testing both directions is valuable because a stateless policy can allow the first packet and still break the reply. Six passing cases verify the examples supplied with the project; they do not exhaust every possible address, protocol, or port combination.
+
+## Worked prefix calculation
+
+The application subnet needs at least 1,000 usable addresses. Ten host bits provide 1,024 total addresses; after reserving the network and broadcast addresses, 1,022 remain, so a `/22` is the smallest listed block that meets the requirement. A `/23` would provide only 510 usable addresses. The 250-host public subnet fits a `/24` with 254 usable addresses, while the 100-host data subnet fits a `/25` with 126. The 20-host management subnet fits a `/27` with 30. This largest-first calculation leaves the next subnet aligned at the following valid boundary and makes the allocation easy to audit.
+
 ---
 
 # 7. Reproducibility, service objectives, and conclusion
@@ -216,6 +260,10 @@ The teacher achieved 94% JSON validity and 39% exact full-frame accuracy on the 
 ## Conclusion
 
 CloudParse presents a complete design for converting short natural-language requests into validated command frames. The implementation joins deterministic data preparation, a teacher/student model workflow, strict API validation, object-backed model delivery, declarative Kubernetes resources, and subnet security rules. Local experiments confirmed 2,728 cleaned training examples from 3,000 commands, a 100-example teacher evaluation with zero missing predictions, six correct NACL decisions, valid subnet allocations, and successful Python source compilation. The measured baseline and explicit evaluation plan provide a sound foundation for completing student training and operational benchmarking.
+
+## Evaluation discipline
+
+The reported numbers are tied to the exact local data and commands recorded in the project results folder. The teacher score describes one run on the supplied 100-example validation set, and the NACL score covers the six included simulator examples. Neither result establishes production performance or behavior on every possible command. Keeping the scope of each measurement explicit makes the findings useful: they form a baseline that can be repeated after model training, API deployment, and load testing.
 
 ## References
 

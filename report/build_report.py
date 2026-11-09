@@ -8,7 +8,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
 from reportlab.platypus import (BaseDocTemplate, Frame, PageBreak, PageTemplate,
-                                Paragraph, Spacer, Table, TableStyle)
+                                KeepTogether, Paragraph, Spacer, Table, TableStyle)
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "report/report-template.md"
@@ -89,6 +89,8 @@ def build():
         if line.startswith("## "):
             title = line[3:]
             if title.startswith(("1.", "2.", "3.", "4.", "5.", "6.", "7.", "8.", "9.")):
+                if title.startswith("2."):
+                    story.append(PageBreak())
                 if not first_h1:
                     story.append(Spacer(1, 3))
                 first_h1 = False
@@ -100,14 +102,21 @@ def build():
             story.append(Paragraph("&bull; " + markup(line[2:]), st["BodyX"])); i += 1; continue
         if line == "---":
             story.append(PageBreak()); i += 1; continue
-        story.append(Paragraph(markup(line), st["BodyX"])); i += 1
+        paragraph = Paragraph(markup(line), st["BodyX"])
+        if line.startswith("Sequence-level distillation is suited"):
+            story.append(KeepTogether([paragraph]))
+        else:
+            story.append(paragraph)
+        i += 1
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    doc = BaseDocTemplate(str(OUT), pagesize=A4, leftMargin=18*mm, rightMargin=18*mm, topMargin=17*mm, bottomMargin=17*mm, title="Cloud Command Parser Project Report", author="Ankit Yadav")
+    doc = BaseDocTemplate(str(OUT), pagesize=A4, leftMargin=18*mm, rightMargin=18*mm, topMargin=17*mm, bottomMargin=10*mm, title="Cloud Command Parser Project Report", author="Ankit Yadav")
     frame = Frame(doc.leftMargin, doc.bottomMargin, doc.width, doc.height, id="normal")
     def footer(canvas, doc):
-        canvas.saveState(); canvas.setStrokeColor(colors.HexColor("#D6E0E7")); canvas.line(18*mm, 12*mm, 192*mm, 12*mm)
-        canvas.setFont("Helvetica", 8); canvas.setFillColor(colors.HexColor("#536575")); canvas.drawString(18*mm, 8*mm, "Cloud Command Parser | Ankit Yadav")
-        canvas.drawRightString(192*mm, 8*mm, f"{doc.page}"); canvas.restoreState()
+        canvas.saveState()
+        canvas.setFont("Helvetica", 8)
+        canvas.setFillColor(colors.HexColor("#536575"))
+        canvas.drawRightString(192*mm, 5*mm, f"{doc.page}")
+        canvas.restoreState()
     doc.addPageTemplates([PageTemplate(id="main", frames=frame, onPage=footer)])
     doc.build(story)
     print(OUT)

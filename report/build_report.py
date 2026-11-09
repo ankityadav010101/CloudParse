@@ -1,4 +1,4 @@
-"""Build the Cloud Command Parser project report PDF."""
+"""Build the CloudParse assignment report PDF."""
 from pathlib import Path
 import re
 
@@ -89,8 +89,6 @@ def build():
         if line.startswith("## "):
             title = line[3:]
             if title.startswith(("1.", "2.", "3.", "4.", "5.", "6.", "7.", "8.", "9.")):
-                if title.startswith("2."):
-                    story.append(PageBreak())
                 if not first_h1:
                     story.append(Spacer(1, 3))
                 first_h1 = False
@@ -103,13 +101,10 @@ def build():
         if line == "---":
             story.append(PageBreak()); i += 1; continue
         paragraph = Paragraph(markup(line), st["BodyX"])
-        if line.startswith("Sequence-level distillation is suited"):
-            story.append(KeepTogether([paragraph]))
-        else:
-            story.append(paragraph)
+        story.append(KeepTogether([paragraph]))
         i += 1
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    doc = BaseDocTemplate(str(OUT), pagesize=A4, leftMargin=18*mm, rightMargin=18*mm, topMargin=17*mm, bottomMargin=10*mm, title="Cloud Command Parser Project Report", author="Ankit Yadav")
+    doc = BaseDocTemplate(str(OUT), pagesize=A4, leftMargin=18*mm, rightMargin=18*mm, topMargin=17*mm, bottomMargin=10*mm, title="CloudParse Assignment Report", author="Ankit Yadav")
     frame = Frame(doc.leftMargin, doc.bottomMargin, doc.width, doc.height, id="normal")
     def footer(canvas, doc):
         canvas.saveState()

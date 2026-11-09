@@ -1,27 +1,74 @@
-# Cloud Command Parser Project Report
+# CloudParse
+## Assignment Report
 
-## Lightweight Natural-Language Cloud Command Parsing with Distillation and Kubernetes
+## Project and author
 
 | Detail | Information |
 |---|---|
-| Name | Ankit Yadav |
+| Student | Ankit Yadav |
 | Roll number | 230101069 |
-| Project | Cloud Command Parser |
+| Project name | CloudParse |
 | Repository | https://github.com/ankityadav010101/Cloud_Command_Parser |
 
-## Project overview
+## Abstract
 
-Cloud Command Parser turns a short English cloud operation request into a compact, schema-controlled JSON command. The project brings together parallel teacher labeling, validated dataset construction, sequence-level student training, object-backed model delivery, a FastAPI inference service, Kubernetes deployment, and network security exercises. Its design keeps the validation set out of labeling and training, checks model output before returning it, and records reproducible configuration and dataset integrity evidence.
+CloudParse translates short natural-language cloud and productivity commands into a compact JSON representation with an intent and three optional slots: date, time, and place. The project combines a parallel teacher-labeling pipeline, dataset validation, a compact-model fine-tuning design, a schema-controlled API, Kubernetes manifests, and network security exercises. This report explains the concepts behind the design and records the readings produced locally by the available project workflow.
 
-The local pipeline processed all 3,000 supplied training commands. Cleaning retained 2,728 valid unique examples, the NACL simulator passed all six sample decisions, subnet allocations were calculated, and Python source compilation passed.
+## Goals and contribution
 
-## 1. Data pipeline and teacher labeling
+The main goal is to turn a flexible human request into a predictable machine-readable action while making each stage auditable. The repository demonstrates how labelled data, model adaptation, interface validation, deployment configuration, and subnet policy fit into one cloud-oriented system. The current verified results include cleaning all 3,000 supplied commands into 2,728 training records, scoring the local teacher on all 100 held-out validation examples, passing six NACL scenarios, calculating four subnet allocations, and compiling the Python source tree.
 
-`worker/label.py` assigns each input line to a deterministic shard using `line_number % SHARD_COUNT == SHARD_INDEX`. Label workers call the local Ollama `phi3.5` teacher with temperature 0 and seed 42, saving each raw response alongside its source ID and command. The prompt requests the four-field JSON contract. Two workers are configured as a StatefulSet in the `pipeline` namespace.
+## System path
 
-`worker/clean.py` validates JSON structure, intent membership, and slot text against the original command. It removes duplicate IDs and commands, sorts retained examples by ID, verifies source coverage, writes `datasets/v1/train.jsonl`, and records a SHA-256 checksum. The validation set is reserved for evaluation.
+Command text -> deterministic label shards -> validated and checksummed dataset -> teacher/student model workflow -> FastAPI parser -> object-backed model files -> Kubernetes deployment -> network policy and service evaluation.
 
-| Local cleaning result | Count |
+CloudParse is implemented in the `Cloud_Command_Parser` repository. The name used in this report is CloudParse; the repository URL remains the supplied project repository.
+
+---
+
+# 1. Theoretical foundation
+
+## Task-oriented language understanding
+
+A command parser is a task-oriented natural-language understanding system. Unlike an open-ended conversational model, it maps an utterance to a constrained representation that a downstream program can validate and act upon. This smaller output space makes it possible to evaluate the system by comparing both its meaning and its structure against labelled examples.
+
+A common pipeline separates the utterance into an intent and a set of slots. The intent identifies the requested operation, such as `alarm_set`, `calendar_query`, or `weather_query`. Slots carry the values needed to perform that operation. For “set an alarm tomorrow at seven,” the intent is `alarm_set`, the date slot is “tomorrow,” the time slot is “seven,” and the place slot is empty. Keeping these fields separate makes the output useful to an API or workflow engine.
+
+## Structured prediction and contracts
+
+CloudParse represents a prediction as one object with the exact keys `intent`, `date`, `time`, and `place`. The slot fields can be strings or null. A strict schema is an interface contract: it lets the service reject missing keys, unexpected fields, and invalid value types before a response reaches another component. This is important because syntactically valid JSON can still be semantically incomplete or unsafe to consume.
+
+The system therefore has two distinct quality dimensions. Structural validity asks whether the response can be parsed and satisfies the schema. Semantic accuracy asks whether the intent and every slot match the reference annotation. Exact full-frame accuracy is stricter than individual field accuracy: one wrong field makes the complete command incorrect. Both should be reported because a service needs parseable output and correct meaning.
+
+## Sequence-level knowledge distillation
+
+Knowledge distillation transfers behavior from a larger or more capable teacher to a smaller student. In sequence-level distillation, the teacher generates a complete target response for each input, and the student learns to reproduce that response token by token. It uses the teacher's output text and can be implemented with a standard autoregressive training objective.
+
+Logit-level distillation instead compares the teacher's and student's probability distributions over possible next tokens. It can preserve information about alternatives the teacher considered, but requires access to teacher logits. The project uses generated text from a local teacher interface, so sequence-level training is the appropriate implemented path. A limitation is that the student can learn mistakes, omissions, or inconsistent slot conventions present in the teacher's generated labels.
+
+## Parameter-efficient adaptation
+
+Fine-tuning a pretrained language model updates its behavior for the command format. Low-Rank Adaptation (LoRA) freezes the base model weights and learns small low-rank update matrices. This reduces the number of trainable parameters and the storage needed for an adaptation, making it useful when compute and memory are limited. The project configuration includes LoRA-based student training, although a trained artifact was not produced in the local run.
+
+---
+
+# 2. Data engineering and teacher labeling
+
+## Data split and leakage control
+
+The supplied kit contains 3,000 command texts for training and a separate 100-example validation file. Training labels are created only from the training pool. The validation examples are reserved for scoring and are not read by the labeling or training path. This separation matters: tuning prompts or labels using evaluation examples would make the measured score optimistic and less representative of unseen requests.
+
+## Deterministic parallel labeling
+
+`worker/label.py` divides input records into shards by source-line index modulo the worker count. For two workers, one handles even-numbered lines and the other odd-numbered lines. Deterministic assignment makes the work parallel while keeping each source record attributable to one shard. The Ollama Phi-3.5 teacher is called with temperature zero and a fixed seed; raw response text, source ID, and original command are stored together.
+
+Parallel workers improve throughput, but they introduce coverage and duplicate risks. The cleaning stage therefore checks that shard IDs cover the source pool exactly once. Reproducibility depends on recording the teacher model, prompt, decoding settings, source IDs, and raw responses. Retaining the raw response also allows a reviewer to distinguish a model-format error from a later validation error.
+
+## Validation and cleaning rules
+
+`worker/clean.py` parses each raw response and accepts only an object containing the four expected keys. The intent must belong to the supported intent set. A non-null slot must be text copied from the original command. Duplicate IDs or repeated command text are excluded, and retained rows are ordered by source ID. The cleaner then writes compact JSON Lines and a SHA-256 checksum. A checksum detects later changes to the generated dataset; it does not by itself prove the labels are correct.
+
+| Local cleaning measurement | Result |
 |---|---:|
 | Input commands | 3,000 |
 | Invalid JSON | 124 |
@@ -31,69 +78,151 @@ The local pipeline processed all 3,000 supplied training commands. Cleaning reta
 | Duplicate records | 45 |
 | Retained training examples | 2,728 |
 
-The cleaned dataset checksum is `5ded5944f8e1d9f3ef3bd5d39e302a5f397465895f80f9d248b39a4d33f029fd`. Counts and checksum are recorded in the project results directory.
+The rejection counts are emitted by the cleaner's ordered validation checks. The output dataset contains 2,728 examples. Its recorded SHA-256 digest is `5ded5944f8e1d9f3ef3bd5d39e302a5f397465895f80f9d248b39a4d33f029fd`.
 
-## 2. Student model and sequence-level distillation
+---
 
-The training pipeline configures EleutherAI Pythia-70M as a compact student model. It uses teacher-generated JSON as the target sequence and supports CPU fine-tuning with LoRA, followed by adapter merging for a self-contained serving artifact. `training/config.yaml` centralizes the seed, sample limit, sequence length, batch size, epoch count, learning rate, and weight decay. The code supports separate model versions for rolling deployment exercises.
+# 3. Model design and measured evaluation
 
-Sequence-level distillation is suited to the available teacher interface: the student learns to reproduce complete structured responses. Logit-based distillation is outside the implemented pipeline because the teacher interface supplies generated text rather than token probability distributions. The local dataset pipeline completed and retained 2,728 examples. The locally installed Phi-3.5 teacher was evaluated against all 100 held-out validation commands. The run produced 100 predictions with no missing examples. JSON validity was 94%; intent accuracy was 72%, date accuracy 81%, time accuracy 78%, place accuracy 72%, and exact full-frame accuracy 39%. Raw predictions and the score summary are saved in `results/teacher_predictions.jsonl` and `results/teacher_validation.json`. A trained student artifact was not produced in the local run.
+## Student training design
 
-## 3. Schema-controlled inference service
+The configured student is EleutherAI Pythia-70M. A small pretrained model offers a lower memory footprint and a shorter inference path than a large general-purpose model, which suits a narrow command schema. It also has less capacity, so its field-level and exact-frame quality must be established empirically rather than assumed from its size.
 
-`service/app.py` implements `POST /parse`, `GET /healthz`, and `GET /readyz`. Successful responses follow the four-key command schema and include model-version and serving-instance headers. Readiness reflects model initialization, and the service loads model and tokenizer files from S3-compatible storage. Kubernetes Secrets provide runtime credentials. The fault-injection option exercises a fail-closed response when generated output is invalid.
+The training examples pair each command with the teacher's JSON response. The configuration uses seed 42, a maximum of 1,500 examples, sequence length 192, batch size 2, one epoch, learning rate 0.00005, and weight decay 0.01. Separate version names support controlled model releases. The inference package is designed to use a merged adapter so that serving loads one self-contained model directory.
 
-This API boundary connects the trained model to the deployment stack while keeping parsing behavior explicit and observable. The service implementation is present in the repository; container execution and load measurements were not produced in the local run.
+| Training setting | Configured value |
+|---|---:|
+| Student base | EleutherAI Pythia-70M |
+| Maximum training rows | 1,500 |
+| Maximum sequence length | 192 tokens |
+| Batch size / epochs | 2 / 1 |
+| Learning rate | 0.00005 |
+| Weight decay / seed | 0.01 / 42 |
+| Adaptation | LoRA, then merge for serving |
 
-## 4. Kubernetes deployment and operations
+## Held-out teacher readings
 
-`k8s/app.yaml` describes the application namespace, two-replica Deployment, rolling update strategy, Service, Ingress, startup/readiness/liveness probes, and resource requests and limits. The Horizontal Pod Autoscaler targets 70% CPU and is configured for one to two replicas. Readiness checks keep traffic away from a pod while its model initializes. The included k3d setup provides a reproducible local cluster configuration.
+The local Phi-3.5 teacher generated predictions for all 100 validation commands. The project scorer compared each prediction with its reference label and reported zero missing predictions.
 
-The manifests define deployment and scaling behavior. Cluster rollout, recovery, and runtime scaling measurements were not produced in the local run. The single-node local cluster configuration is intended for development and does not establish resilience to physical machine failure.
+| Metric | Measured result |
+|---|---:|
+| JSON validity | 94% |
+| Intent accuracy | 72% |
+| Date accuracy | 81% |
+| Time accuracy | 78% |
+| Place accuracy | 72% |
+| Exact full-frame accuracy | 39% |
+| Validation examples / missing | 100 / 0 |
 
-## 5. Network design and stateless NACL
+## Interpretation
 
-The `10.20.0.0/16` address block is allocated from largest host requirement to smallest. Usable host counts exclude network and broadcast addresses.
+JSON validity measures contract compliance, not correctness of the extracted command. The 94% result means most outputs could be parsed into the required four-key object, while the lower exact-frame score shows that matching every field at once is harder. The difference between the component scores and the full-frame score is expected: errors across several fields combine, and one incorrect field is enough to make a complete frame incorrect.
 
-| Subnet | Hosts needed | Network | Usable range | Broadcast | Usable hosts |
+These figures establish a measured baseline for the teacher on the supplied held-out set. They are not student scores. A student evaluation should use the same validation file, scorer, normalization rules, and sample count so results can be interpreted consistently. Raw predictions are stored in `results/teacher_predictions.jsonl`; aggregate readings are in `results/teacher_validation.json`.
+
+---
+
+# 4. Inference interface and application security
+
+## Request-response boundary
+
+The FastAPI service exposes `POST /parse`, `GET /healthz`, and `GET /readyz`. A parse request carries command text; a successful response returns the exact schema fields and model-version and serving-instance headers. Separating liveness from readiness is useful: a process may be alive while it is still loading its tokenizer and model, but it should not receive user traffic until it can serve valid responses.
+
+The service validates model output before returning it. A malformed JSON string, extra key, missing key, or invalid slot type should not silently pass through as a successful command. The project includes a fail-closed path that returns an error when model output violates the contract. This pattern makes failure explicit and prevents downstream code from treating arbitrary generated text as a trusted action.
+
+## Model loading and object storage
+
+Model files are retrieved from S3-compatible object storage at startup. This keeps the service image separate from large model artifacts and allows different model versions to be published without rebuilding application code. A production design should pin each deployment to an immutable artifact version and verify artifact integrity before loading it. Object-store credentials belong in a Kubernetes Secret or an external secret manager, not in source code or a container image.
+
+## Container boundary
+
+A container packages the API runtime and its dependencies in a repeatable environment. The image build should use pinned dependencies, minimize unnecessary files, run as a non-root user where practical, and expose only the service port. Health endpoints and model-version headers give operators basic diagnostics. The repository contains a Dockerfile and API implementation, but Docker was not installed in the local environment; image size, endpoint latency, memory use, and request-failure measurements are therefore not claimed.
+
+## Failure handling
+
+Model-generated output is untrusted input, even when produced by a local model. The API should parse it, enforce the schema, and return an explicit failure when validation fails. Timeouts and object-store errors should also fail visibly, with useful logs that avoid leaking credentials or user commands. These safeguards separate model quality from service correctness: a service can reject a bad prediction reliably even when the underlying model is imperfect.
+
+---
+
+# 5. Kubernetes deployment and reliability theory
+
+## Declarative workload management
+
+Kubernetes uses desired-state manifests to describe how many application replicas should run and how they are exposed. A Deployment manages replacement Pods and rolling updates; a Service provides a stable address for a changing set of Pods; an Ingress supplies an HTTP entry point. The project manifest configures two replicas, resource requests and limits, probes, a Service, an Ingress, and a CPU-based Horizontal Pod Autoscaler.
+
+Replica count is an availability and capacity setting, not proof of fault tolerance. Two Pods on one physical node can still fail together if that node is unavailable. Production resilience requires appropriate node placement, storage durability, and dependency availability, followed by failure exercises that measure recovery rather than relying only on manifest inspection.
+
+## Probes and traffic readiness
+
+A startup probe gives a slow-loading model time to initialize. A readiness probe controls whether a Pod receives traffic through its Service. A liveness probe identifies a process that should be restarted. These checks answer different questions and should not be collapsed into one endpoint: restarting a healthy process that is merely loading a large model can make recovery worse.
+
+The parser readiness endpoint is intended to remain unavailable until model initialization is complete. This prevents requests from reaching an instance that cannot yet make predictions. Probe thresholds should be chosen from observed startup and response times, then tested during cold starts and failure injection.
+
+## Scaling and rolling updates
+
+The Horizontal Pod Autoscaler targets 70% CPU and is configured to range from one to two replicas. It adjusts the desired replica count based on observed resource metrics, but it does not guarantee a particular response time. CPU requests influence scheduling and autoscaling calculations; limits constrain resource consumption. A model workload may also be limited by memory, generation length, or tokenizer overhead, so CPU alone may not predict saturation.
+
+A rolling update gradually replaces old Pods with a new version. A safe release verifies readiness before shifting traffic and keeps a rollback path to the prior artifact. Useful measurements include deployment completion time, time to ready, failed requests during rollout, recovery after Pod deletion, and whether the intended model version served each request.
+
+## Local deployment evidence
+
+`k8s/app.yaml` contains the application Deployment, Service, Ingress, probes, resource settings, and autoscaler configuration. The local environment did not have `kubectl` or `k3d`, so rollout, recovery, and autoscaling behavior were not executed or measured. The manifest describes the intended operations; it is not presented as runtime evidence.
+
+---
+
+# 6. Network architecture and NACL experiment
+
+## CIDR and variable-length subnet allocation
+
+CIDR notation writes a network prefix as an address followed by a prefix length. The prefix fixes the network bits; the remaining bits identify addresses inside the block. A `/22` leaves 10 host bits and contains 1,024 addresses, of which 1,022 are traditionally usable for hosts in a subnet. Variable-length subnet masking assigns a different prefix length to each subnet, reducing unused address space compared with giving every subnet the same size.
+
+The project allocates the largest requirement first from `10.20.0.0/16`. Each new subnet begins on a boundary aligned to its block size. Allocating in descending order avoids leaving a large requirement fragmented across smaller address ranges.
+
+| Subnet | Required hosts | CIDR | Usable address range | Broadcast | Usable |
 |---|---:|---|---|---|---:|
 | app | 1,000 | 10.20.0.0/22 | 10.20.0.1 - 10.20.3.254 | 10.20.3.255 | 1,022 |
 | public | 250 | 10.20.4.0/24 | 10.20.4.1 - 10.20.4.254 | 10.20.4.255 | 254 |
 | data | 100 | 10.20.5.0/25 | 10.20.5.1 - 10.20.5.126 | 10.20.5.127 | 126 |
 | management | 20 | 10.20.5.128/27 | 10.20.5.129 - 10.20.5.158 | 10.20.5.159 | 30 |
 
-`network/nacl.json` places the deny rule for `198.51.100.0/24` ahead of broad HTTP/HTTPS allows. Explicit ephemeral-port rules account for stateless return traffic, while SSH access is limited to the management subnet. The supplied packet simulator passed all six expected sample decisions (6/6, 100%). The subnet calculator produced the allocations shown above. Evidence is saved in `results/nacl_sample_check.txt` and `results/subnet_check.txt`.
+## Stateless network access control
 
-## 6. Reproducibility and continuous integration
+A network ACL evaluates numbered rules in order and applies the first matching rule. Specific denies should therefore precede broad allows. The project denies inbound traffic from `198.51.100.0/24` before general web allowances, restricts SSH to management, and explicitly permits ephemeral return traffic where needed.
 
-The repository includes a Makefile, pinned dependency lists, centralized training configuration, unit checks, and GitHub Actions for compilation, testing, evaluation, and secret scanning. Local Python source compilation passed and is recorded in `results/compileall.txt`. The workflow codifies repeatable quality checks for repository changes. A hosted CI result is not claimed here.
+A NACL is stateless: it does not remember an allowed outbound connection and automatically permit its response. The reverse direction must be permitted by a separate rule. This differs from stateful firewalls, which track connection state. Forgetting return ports can make an otherwise valid request fail after the initial packet was allowed.
 
-## 7. Performance design, cost model, and review
+## Experiment reading
 
-The project includes the components needed to evaluate the parser as a service: a health and readiness interface, model-version headers, configurable deployment resources, and a load-testing setup. A 99% successful-response objective and a five-second p95 latency target provide concrete service goals for a deployment run.
+The supplied packet simulator was run with its checking option. All six sample cases matched their expected decisions: 6/6, or 100%. The sample covered allowed HTTPS, denied SSH, application egress, an explicitly denied source range, ephemeral outbound traffic, and a denied database port. The subnet calculator also completed and produced the allocations in the table. Result logs are stored in `results/nacl_sample_check.txt` and `results/subnet_check.txt`.
 
-The supplied hypothetical rate card can estimate hourly replica cost and cost per 1,000 requests once measured traffic is available. This is a planning model rather than a cloud charge. Local latency, throughput, resource consumption, and cloud billing readings were not produced in this run.
+---
 
-| Review area | Implemented evidence | Next measurement or improvement |
-|---|---|---|
-| Dataset quality | 3,000 inputs cleaned; 2,728 examples retained; checksum recorded | Review label distributions and evaluate on the reserved validation set |
-| Model quality | Teacher: 94% valid JSON and 39% exact full-frame accuracy on 100 held-out commands | Train the student and report exact-frame and field-level validation scores |
-| Service behavior | Schema checks, readiness endpoints, version headers, and fail-closed path | Run container checks and record response/error rates |
-| Performance | Kubernetes resource settings and load-test setup included | Measure p95 latency, throughput, CPU, and memory under stated load |
-| Reliability | Rolling update, probes, and HPA behavior defined in manifests | Exercise rollout, recovery, and scaling in a running cluster |
-| Security and cost | Runtime credentials use Kubernetes Secrets; cost formula documented | Verify secret scanning and calculate cost from measured traffic |
+# 7. Reproducibility, service objectives, and conclusion
 
-## 8. Limitations
+## Reproducibility and measurement design
 
-The local run verifies the complete dataset cleaning path, network examples, subnet calculations, source compilation, and the teacher's held-out validation quality. The Pythia student was not trained because the local Python environment does not include the required Transformers and PEFT packages. Container, Kubernetes, and Locust runtime measurements were unavailable because Docker, k3d, kubectl, and Locust are not installed. These measurements require training and running the relevant services in their target environments. The compact student can also inherit teacher labeling errors, and the single-node development cluster cannot demonstrate multi-machine fault tolerance. SeaweedFS supplies local S3-compatible storage for the project workflow; production deployments should use durable, appropriately secured object storage.
+Reproducibility means another run can identify the input data, model, prompt, configuration, and scoring method that produced a result. CloudParse uses a fixed seed in the labeling and training configuration, stores source IDs, validates shard coverage, orders retained records, and records a SHA-256 digest for the cleaned dataset. Python source compilation passed locally. The repository also includes a Makefile, pinned requirements, unit checks, and a GitHub Actions workflow.
 
-## 9. Conclusion
+A service-level objective (SLO) turns a quality expectation into a measurable target over a defined period. The project proposes a 99% successful-response objective and a five-second p95 latency objective. Success rate is successful responses divided by attempted requests; p95 is the latency below which 95% of requests complete. A load report should specify duration, concurrency, sample count, error codes, and resource limits so readers can interpret the numbers.
 
-Cloud Command Parser delivers a coherent end-to-end design for translating natural-language cloud requests into validated structured commands. The implementation connects deterministic parallel labeling and auditable dataset cleaning with a compact-model training path, a schema-controlled API, Kubernetes deployment manifests, and network security exercises. Local evidence confirms that all 3,000 input commands passed through cleaning, yielding 2,728 retained examples, and that the NACL samples, subnet calculator, and Python compilation checks completed successfully. Evaluation of the local teacher on all 100 held-out commands measured 94% JSON validity and 39% exact full-frame accuracy, providing a concrete baseline for student fine-tuning. The repository provides the configuration and operational components needed to train, serve, and evaluate the parser as a cloud-native project.
+## Cost model
 
-## Sources
+The hypothetical rate card can estimate replica cost as hourly price per vCPU and memory multiplied by requested resources and replica count. Cost per 1,000 requests can then be estimated by dividing the hourly cost by requests per hour and scaling to 1,000. This estimate becomes useful only after throughput is measured under the same deployment conditions. No cloud billing or load-test result was produced locally, so this report does not claim a measured service cost or latency.
+
+## Limitations and next steps
+
+The teacher achieved 94% JSON validity and 39% exact full-frame accuracy on the 100-command validation set. A trained Pythia student artifact was not produced because the local Python environment lacks Transformers and PEFT. Docker, Kubernetes, and Locust experiments were also unavailable because Docker, `kubectl`, `k3d`, and Locust are not installed. SeaweedFS is configured as a local S3-compatible store; production use should employ durable storage and carefully managed credentials. Future work is to install the training and deployment dependencies, train the student, score it on the same held-out set, and run controlled service-load and recovery experiments.
+
+## Conclusion
+
+CloudParse presents a complete design for converting short natural-language requests into validated command frames. The implementation joins deterministic data preparation, a teacher/student model workflow, strict API validation, object-backed model delivery, declarative Kubernetes resources, and subnet security rules. Local experiments confirmed 2,728 cleaned training examples from 3,000 commands, a 100-example teacher evaluation with zero missing predictions, six correct NACL decisions, valid subnet allocations, and successful Python source compilation. The measured baseline and explicit evaluation plan provide a sound foundation for completing student training and operational benchmarking.
+
+## References
 
 - Bastianelli et al., “SLURP: A Spoken Language Understanding Resource Package,” EMNLP 2020: https://aclanthology.org/2020.emnlp-main.588/.
 - Kim and Rush, “Sequence-Level Knowledge Distillation,” EMNLP 2016: https://aclanthology.org/D16-1139/.
-- EleutherAI Pythia-70M model card: https://huggingface.co/EleutherAI/pythia-70m.
-- k3d documentation: https://k3d.io/; Kubernetes documentation: https://kubernetes.io/docs/.
+- Hu et al., “LoRA: Low-Rank Adaptation of Large Language Models,” 2021: https://arxiv.org/abs/2106.09685.
+- EleutherAI, Pythia-70M model card: https://huggingface.co/EleutherAI/pythia-70m.
+- RFC 4632, “Classless Inter-domain Routing”: https://www.rfc-editor.org/rfc/rfc4632.
+- Kubernetes, “Configure Liveness, Readiness and Startup Probes”: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/.
+- AWS, “Control subnet traffic with network access control lists”: https://docs.aws.amazon.com/vpc/latest/userguide/vpc-network-acls.html.

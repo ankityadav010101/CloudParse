@@ -2,6 +2,8 @@
 
 **GitHub repository:** [ankityadav010101/CloudParse](https://github.com/ankityadav010101/CloudParse)
 
+**Final eight-page assignment report:** [CloudParse Assignment Report (PDF)](report/report.pdf)
+
 CloudParse turns short natural-language commands into schema-checked JSON. The project includes deterministic teacher labeling, dataset validation, a Pythia-70M student-training configuration, a FastAPI inference service, Kubernetes deployment manifests, and network security exercises. The supplied 3,000-command pool is used for training data preparation; the 100-example validation set is held out for evaluation.
 
 ## Repository map

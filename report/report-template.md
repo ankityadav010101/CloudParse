@@ -1,14 +1,12 @@
 # CloudParse
 ## Assignment Report
 
-## Project and author
-
 | Detail | Information |
 |---|---|
 | Student | Ankit Yadav |
 | Roll number | 230101069 |
 | Project name | CloudParse |
-| Repository | https://github.com/ankityadav010101/Cloud_Command_Parser |
+| Repository | [CloudParse](https://github.com/ankityadav010101/CloudParse) |
 
 ## Abstract
 
@@ -22,7 +20,7 @@ The main goal is to turn a flexible human request into a predictable machine-rea
 
 Command text -> deterministic label shards -> validated and checksummed dataset -> teacher/student model workflow -> FastAPI parser -> object-backed model files -> Kubernetes deployment -> network policy and service evaluation.
 
-CloudParse is implemented in the `Cloud_Command_Parser` repository. The name used in this report is CloudParse; the repository URL remains the supplied project repository.
+The CloudParse repository contains the source code, experiment results, deployment configuration, and this report.
 
 ## Scope and example use
 

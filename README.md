@@ -1,6 +1,8 @@
-# Cloud Command Parser - Knowledge Distillation Mini Project
+# CloudParse - Natural-Language Cloud Command Interpreter
 
-This repository implements the assignment brief using the supplied student kit. It trains a Pythia-70M student on exact JSON replies generated locally by Ollama Phi-3.5, then serves the model through FastAPI on a local k3d cluster. SeaweedFS provides the S3-compatible object store. The project uses the supplied 3,000-command pool and keeps `data/validation.jsonl` out of labeling and training.
+**GitHub repository:** [ankityadav010101/CloudParse](https://github.com/ankityadav010101/CloudParse)
+
+CloudParse turns short natural-language commands into schema-checked JSON. The project includes deterministic teacher labeling, dataset validation, a Pythia-70M student-training configuration, a FastAPI inference service, Kubernetes deployment manifests, and network security exercises. The supplied 3,000-command pool is used for training data preparation; the 100-example validation set is held out for evaluation.
 
 ## Repository map
 
@@ -31,7 +33,7 @@ Install Docker, k3d, kubectl, Ollama, Python 3.11, and GNU Make. Pull the fixed 
 
 ## Submission report
 
-The personalized PDF is at `report/report.pdf`; its source is `report/report-template.md` and the reproducible builder is `report/build_report.py` (`make report`). It includes Ankit Yadav, roll number 230101069, and the specified GitHub repository. Operational result fields remain pending until the local labeling, training, deployment, and load-test runs produce evidence.
+The eight-page CloudParse assignment report is at `report/report.pdf`; its source is `report/report-template.md` and the reproducible builder is `report/build_report.py` (`make report`). Local readings include 2,728 retained training examples from 3,000 commands, teacher evaluation on 100 held-out examples, six passing NACL cases, calculated subnet allocations, and successful Python source compilation. Student training and container/Kubernetes performance measurements were not produced in the local run.
 
 ## API contract
 

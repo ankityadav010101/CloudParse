@@ -31,11 +31,19 @@ def style_set():
 
 
 def markup(text):
+    links = []
+    def mask_link(match):
+        links.append((match.group(1), match.group(2)))
+        return f"LINKTOKEN{len(links)-1}END"
+    text = re.sub(r"\[([^\]]+)\]\((https?://[^)\s]+)\)", mask_link, text)
     text = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
     text = re.sub(r"`([^`]+)`", r'<font name="Courier">\1</font>', text)
     text = re.sub(r"\*\*([^*]+)\*\*", r"<b>\1</b>", text)
     text = re.sub(r"\*([^*]+)\*", r"<i>\1</i>", text)
     text = re.sub(r"https?://[^\s]+", lambda m: f'<link href="{m.group(0)}" color="#187C80">{m.group(0)}</link>', text)
+    for i, (label, url) in enumerate(links):
+        safe_label = label.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        text = text.replace(f"LINKTOKEN{i}END", f'<link href="{url}" color="#187C80">{safe_label}</link>')
     return text
 
 
